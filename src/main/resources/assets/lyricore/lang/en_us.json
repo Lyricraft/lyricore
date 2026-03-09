@@ -1,0 +1,13 @@
+{
+  "itemGroup.lyricore": "Example Mod Tab",
+  "block.lyricore.example_block": "Example Block",
+  "item.lyricore.example_item": "Example Item",
+
+  "lyricore.configuration.title": "Lyricore Configs",
+  "lyricore.configuration.section.lyricore.common.toml": "Lyricore Configs",
+  "lyricore.configuration.section.lyricore.common.toml.title": "Lyricore Configs",
+  "lyricore.configuration.items": "Item List",
+  "lyricore.configuration.logDirtBlock": "Log Dirt Block",
+  "lyricore.configuration.magicNumberIntroduction": "Magic Number Text",
+  "lyricore.configuration.magicNumber": "Magic Number"
+}
