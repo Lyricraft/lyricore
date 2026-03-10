@@ -1,13 +1,8 @@
 {
-  "itemGroup.lyricore": "Example Mod Tab",
-  "block.lyricore.example_block": "Example Block",
-  "item.lyricore.example_item": "Example Item",
-
-  "lyricore.configuration.title": "Lyricore Configs",
-  "lyricore.configuration.section.lyricore.common.toml": "Lyricore Configs",
-  "lyricore.configuration.section.lyricore.common.toml.title": "Lyricore Configs",
-  "lyricore.configuration.items": "Item List",
-  "lyricore.configuration.logDirtBlock": "Log Dirt Block",
-  "lyricore.configuration.magicNumberIntroduction": "Magic Number Text",
-  "lyricore.configuration.magicNumber": "Magic Number"
+  "lyricore.multiplayer.disconnect.invalid_request": "Unrecognized RequestManager request.",
+  "lyricore.multiplayer.disconnect.invalid_server_request": "Unrecognized RequestManager request from Server.",
+  "lyricore.multiplayer.disconnect.invalid_response": "Unrecognized RequestManager response.",
+  "lyricore.multiplayer.disconnect.invalid_server_response": "Unrecognized RequestManager response from Server.",
+  "lyricore.multiplayer.disconnect.request_timeout": "RequestManager request timeout.",
+  "lyricore.multiplayer.disconnect.server_request_timeout": "No Response for RequestManager request from Server."
 }

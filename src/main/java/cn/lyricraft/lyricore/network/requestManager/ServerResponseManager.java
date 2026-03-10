@@ -12,6 +12,14 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import java.util.function.Function;
 
 public abstract class ServerResponseManager extends ResponseManager<ClientRequestPair> {
+
+    private boolean strict = false; // 在 strict 模式下，异端若发送了无法识别的请求，则直接断开连接
+
+    public ServerResponseManager strict(){
+        this.strict = true;
+        return this;
+    }
+
     public ServerResponseManager(String namespace, Function<CompoundTag, ? extends CustomPacketPayload> payload){
         super(namespace, payload);
     }
@@ -24,6 +32,9 @@ public abstract class ServerResponseManager extends ResponseManager<ClientReques
         if (pair == null) {
             Lyricore.LOGGER.warn("玩家客户端发送的 RequestManager 请求无法识别 / Unrecognized RequestManager request from player client: "+ LogHelper.playerProfile(context.player()) +"\n"
                     + "请求类型 / Request Type: " + namespace + ":" + "requestManager" + " . " + rmNbt.getString("type"));
+            if (strict)
+                context.disconnect(Component.translatable("lyricore.multiplayer.disconnect.invalid_request")
+                        .append("\n" + namespace + ":" + "requestManager" + " . " + rmNbt.getString("type")));
             return;
         }
         Handle handleObj = new Handle(id, pair, context);

@@ -1,0 +1,8 @@
+{
+  "lyricore.multiplayer.disconnect.invalid_request": "无法识别的 RequestManager 请求",
+  "lyricore.multiplayer.disconnect.invalid_server_request": "服务端发送的 RequestManager 请求无法识别",
+  "lyricore.multiplayer.disconnect.invalid_response": "无法识别的 RequestManager 相应",
+  "lyricore.multiplayer.disconnect.invalid_server_response": "服务端发送的 RequestManager 相应无法识别",
+  "lyricore.multiplayer.disconnect.request_timeout": "RequestManager 请求超时",
+  "lyricore.multiplayer.disconnect.server_request_timeout": "未及时响应服务端的 RequestManager 请求"
+}

@@ -2,8 +2,11 @@ package cn.lyricraft.lyricore.network.requestManager;
 
 import cn.lyricraft.lyricore.Lyricore;
 import cn.lyricraft.lyricore.log.LogHelper;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.*;
@@ -16,6 +19,9 @@ import java.util.function.Function;
 public abstract class RequestManager implements AutoCloseable{
     public static int DEFAULT_TIMEOUT = 30 * 1000; // 单位：毫秒
     public static int DEFAULT_HANDLE_EXPIRED_INTERVAL = 10 * 1000; // 单位：毫秒
+
+    protected boolean idStrict = false; // 在 idStrict 模式下，异端若发送了无法识别的相应，则直接断开连接
+    protected boolean timeStrict = false; // 在 timsStrict 模式下，异端若未在要求时间内相应，则直接断开连接
 
     public boolean connecting = false;
     public String namespace;
@@ -65,7 +71,7 @@ public abstract class RequestManager implements AutoCloseable{
         handleExpiredTimer = null;
         requests.forEach((id,info) -> {
             if (info.isWaiting())
-                info.handler().handleResponse(new CompoundTag(), null, new ResponseStatus(ResponseStatus.Status.DISCONNECT));
+                info.handler().handleResponse(new CompoundTag(), null, new ResponseStatus(ResponseStatus.Status.DISCONNECT), info);
         });
         requests.clear();
     }
@@ -75,8 +81,10 @@ public abstract class RequestManager implements AutoCloseable{
         List<Integer> toRemove = new ArrayList<>();
         requests.forEach((id,info) -> {
             if (time - info.requestTime() > timeout){
-                if (info.isWaiting())
-                    info.handler().handleResponse(new CompoundTag(), null, new ResponseStatus(ResponseStatus.Status.TIMEOUT));
+                if (timeStrict)
+                    disconnectForTimeout(info);
+                else if (info.isWaiting())
+                    info.handler().handleResponse(new CompoundTag(), null, new ResponseStatus(ResponseStatus.Status.TIMEOUT), info);
                 toRemove.addLast(id);
             }
         });
@@ -85,32 +93,17 @@ public abstract class RequestManager implements AutoCloseable{
         });
     }
 
-    private void handleResponse(CompoundTag rpNbt, IPayloadContext context){
-        CompoundTag rmNBT = rpNbt.getCompound(metaNbtKey());
-        if (rmNBT.isEmpty()) return;
-        int id = rmNBT.getInt("id");
-        RequestInfo rqInfo = requests.get(id);
-        if (rqInfo == null) {
-            Lyricore.LOGGER.warn("无法定位异端 RequestManager 响应的 id。Failed to locate ID of RequestManager response from ♫Otherside♫.\n"
-            +"可能的玩家信息与请求类型 / Possible player info and request type: " + LogHelper.playerProfile(context.player()) + " @ " + namespace + ":" + "requestManager" + " . " + rpNbt.getString("type"));
-            return;
-        };
-        if (rmNBT.getBoolean("reject")){
-            if(rqInfo.isWaiting()) rqInfo.handler.handleResponse(new CompoundTag(), context, new ResponseStatus(ResponseStatus.Status.REJECTED));
-        } else if (rmNBT.getBoolean("delay")){
-            if(rqInfo.isWaiting()) rqInfo.handler.handleResponse(new CompoundTag(), context, new ResponseStatus(ResponseStatus.Status.DELAYED));
-        } else {
-            rpNbt.remove(metaNbtKey());
-            rqInfo.handler.handleResponse(rpNbt, context, new ResponseStatus(ResponseStatus.Status.OK));
-        }
-        requests.remove(id);
-    }
+    protected abstract void disconnectForTimeout(RequestInfo info);
+
+    public abstract void handleResponse(CompoundTag rpNbt, IPayloadContext context);
+
+    protected abstract void cannotLocateId(IPayloadContext context);
 
     protected String metaNbtKey(){
         return ((Objects.equals(namespace, ""))? "requestManager" : (namespace + ":" + "requestManager"));
     }
 
-    protected record RequestInfo(IResponseHandler handler, long requestTime, boolean isWaiting){}
+    public record RequestInfo(ResourceLocation type, IResponseHandler handler, long requestTime, boolean isWaiting, List<ServerPlayer> players){}
 
     public record ResponseStatus(Status status){
         public enum Status{
