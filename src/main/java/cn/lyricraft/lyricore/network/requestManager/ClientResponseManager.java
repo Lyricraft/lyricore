@@ -9,7 +9,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.function.Function;
 
-public abstract class ClientResponseManager extends ResponseManager<ServerRequestPair> {
+public class ClientResponseManager extends AbstractResponseManager<ServerRequestPair> {
 
     private boolean strict = false; // 在 strict 模式下，异端若发送了无法识别的请求，则直接断开连接
 
@@ -22,7 +22,12 @@ public abstract class ClientResponseManager extends ResponseManager<ServerReques
         super(namespace, payload);
     }
 
-    public void handlerRequest(CompoundTag metaNbt, IPayloadContext context){
+    public ClientResponseManager(){
+        super();
+    }
+
+    @Override
+    protected void handleRequest(CompoundTag metaNbt, IPayloadContext context){
         CompoundTag rmNbt = metaNbt.getCompound(metaNbtKey());
         if (rmNbt.isEmpty()) return;
         int id = rmNbt.getInt("id");
@@ -41,7 +46,7 @@ public abstract class ClientResponseManager extends ResponseManager<ServerReques
         if (!handleObj.isHandled()) handleObj.delay();
     }
 
-    public class Handle extends ResponseManager.Handle{
+    public class Handle extends AbstractResponseManager.Handle{
 
         public Handle(int id, ServerRequestPair pair) {
             super(id, pair);

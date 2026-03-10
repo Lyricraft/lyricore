@@ -3,9 +3,6 @@ package cn.lyricraft.lyricore.network.requestManager;
 import cn.lyricraft.lyricore.Lyricore;
 import cn.lyricraft.lyricore.log.LogHelper;
 import cn.lyricraft.lyricore.server.ServerTypeHelper;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -19,7 +16,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class ServerRequestManager extends RequestManager {
+public class ServerRequestManager extends AbstractRequestManager {
+
+    public ServerRequestManager(String namespace, Function<CompoundTag, ? extends CustomPacketPayload> payload, int timeout, int handleExpiredInterval){
+        super(namespace, payload, timeout, handleExpiredInterval);
+    }
+
+    public ServerRequestManager(){
+        super();
+    }
 
     public ServerRequestManager idStrict(){
         idStrict = true;

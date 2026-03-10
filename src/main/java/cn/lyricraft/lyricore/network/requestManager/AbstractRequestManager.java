@@ -1,13 +1,12 @@
 package cn.lyricraft.lyricore.network.requestManager;
 
 import cn.lyricraft.lyricore.Lyricore;
-import cn.lyricraft.lyricore.log.LogHelper;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadHandler;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,7 +15,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-public abstract class RequestManager implements AutoCloseable{
+public abstract class AbstractRequestManager implements AutoCloseable, IPayloadHandler<ManagedResponsePayload> {
     public static int DEFAULT_TIMEOUT = 30 * 1000; // 单位：毫秒
     public static int DEFAULT_HANDLE_EXPIRED_INTERVAL = 10 * 1000; // 单位：毫秒
 
@@ -34,7 +33,7 @@ public abstract class RequestManager implements AutoCloseable{
 
     protected Map<Integer, RequestInfo> requests = new ConcurrentHashMap<>();
 
-    public RequestManager(String namespace, Function<CompoundTag, ? extends CustomPacketPayload> payload, int timeout, int handleExpiredInterval){
+    public AbstractRequestManager(String namespace, Function<CompoundTag, ? extends CustomPacketPayload> payload, int timeout, int handleExpiredInterval){
         this.namespace = namespace;
         this.payload = payload;
         this.timeout = timeout;
@@ -46,7 +45,7 @@ public abstract class RequestManager implements AutoCloseable{
         handleExpiredTimer.scheduleAtFixedRate(this::handleExpiredRequest, 0, handleExpiredInterval, TimeUnit.MILLISECONDS);
     }
 
-    public RequestManager(){
+    public AbstractRequestManager(){
        this(Lyricore.MOD_NAMESPACE, ManagedRequestPayload::new, DEFAULT_TIMEOUT, DEFAULT_HANDLE_EXPIRED_INTERVAL);
     }
 
@@ -94,6 +93,11 @@ public abstract class RequestManager implements AutoCloseable{
     }
 
     protected abstract void disconnectForTimeout(RequestInfo info);
+
+    @Override
+    public void handle(ManagedResponsePayload payload, IPayloadContext context){
+        handleResponse(payload.rpNbt(), context);
+    }
 
     public abstract void handleResponse(CompoundTag rpNbt, IPayloadContext context);
 

@@ -8,14 +8,14 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-public record ManagedRequestPayload(CompoundTag metaNbt) implements CustomPacketPayload {
+public record ManagedRequestPayload(CompoundTag rqNbt) implements CustomPacketPayload {
     public static final Type<ManagedRequestPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(Lyricore.MOD_NAMESPACE,
-                    "managedRequestPayload"));
+                    "managed_request_payload"));
 
     public static final StreamCodec<ByteBuf, ManagedRequestPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.COMPOUND_TAG,
-            ManagedRequestPayload::metaNbt,
+            ManagedRequestPayload::rqNbt,
             ManagedRequestPayload::new
     );
 

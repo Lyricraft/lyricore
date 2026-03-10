@@ -1,18 +1,30 @@
 package cn.lyricraft.lyricore.network.requestManager;
 
+import ca.weblite.objc.Client;
 import cn.lyricraft.lyricore.Lyricore;
 import cn.lyricraft.lyricore.log.LogHelper;
 import cn.lyricraft.lyricore.server.ServerTypeHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public class ClientRequestManager extends RequestManager {
+import java.util.function.Function;
+
+public class ClientRequestManager extends AbstractRequestManager {
+
+    public ClientRequestManager(String namespace, Function<CompoundTag, ? extends CustomPacketPayload> payload, int timeout, int handleExpiredInterval){
+        super(namespace, payload, timeout, handleExpiredInterval);
+    }
+
+    public ClientRequestManager(){
+        super();
+    }
+
     public ClientRequestManager idStrict(){
         idStrict = true;
         return this;

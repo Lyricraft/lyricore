@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 public record ManagedResponsePayload(CompoundTag rpNbt) implements CustomPacketPayload {
     public static final Type<ManagedResponsePayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(Lyricore.MOD_NAMESPACE,
-                    "managedResponsePayload"));
+                    "managed_response_payload"));
 
     public static final StreamCodec<ByteBuf, ManagedResponsePayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.COMPOUND_TAG,

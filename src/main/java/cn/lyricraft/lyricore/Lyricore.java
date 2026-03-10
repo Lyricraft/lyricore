@@ -1,5 +1,7 @@
 package cn.lyricraft.lyricore;
 
+import cn.lyricraft.lyricore.network.requestManager.*;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -36,8 +38,20 @@ public class Lyricore {
     // Define mod id in a common place for everything to reference
     public static final String MOD_ID = "lyricore";
     public static final String MOD_NAMESPACE = MOD_ID;
+    public static final String MOD_VERSION = "0.9.0";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
+
+    // 注册通用 RequestManager
+    public static final ServerRequestManagerRegistrar SERVER_REQUEST_MANAGERS = new ServerRequestManagerRegistrar(MOD_VERSION);
+    public static final ServerRequestManager SERVER_REQUEST_MANAGER = SERVER_REQUEST_MANAGERS.register(
+            new ServerRequestManager().idStrict(),
+            ManagedResponsePayload.TYPE,
+            ManagedResponsePayload.STREAM_CODEC);
+    public static final ServerResponseManager SERVER_RESPONSE_MANAGER = SERVER_REQUEST_MANAGERS.register(
+            new ServerResponseManager().strict(),
+            ManagedRequestPayload.TYPE,
+            ManagedRequestPayload.STREAM_CODEC);
 
     // The constructor for the mod class is the first code that is run when your mod is loaded.
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
@@ -56,4 +70,12 @@ public class Lyricore {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
     }
+
+    // 真注册通用 RequestManager
+    @SubscribeEvent
+    public static void register(RegisterPayloadHandlersEvent event) {
+        SERVER_REQUEST_MANAGERS.register(event);
+    }
+
+
 }
