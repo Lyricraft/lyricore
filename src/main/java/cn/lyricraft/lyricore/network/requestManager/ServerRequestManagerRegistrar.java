@@ -19,13 +19,13 @@ public class ServerRequestManagerRegistrar extends AbstractRequestManagerRegistr
 
     @Override
     public ServerRequestManager register(ServerRequestManager manager) {
-        rqManagers.addLast(manager);
+        rqManagers.add(manager);
         return manager;
     }
 
     @Override
     public ServerResponseManager register(ServerResponseManager manager) {
-        rpManagers.addLast(manager);
+        rpManagers.add(manager);
         return manager;
     }
 

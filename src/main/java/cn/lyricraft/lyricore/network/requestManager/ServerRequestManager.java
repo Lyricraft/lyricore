@@ -32,21 +32,21 @@ public class ServerRequestManager extends AbstractRequestManager<ServerRequestPa
         return this;
     }
 
-    public boolean request(ServerRequestPair pair, ServerPlayer target, Function<CompoundTag, ? extends CustomPacketPayload> payload, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
+    public boolean request(ServerRequestPair pair, ServerPlayer target, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
         if (!connecting) return false;
         int id = random.nextInt();
         CompoundTag metaNbt = new CompoundTag();
         metaNbt.putInt("id", id);
         metaNbt.putString("type", pair.type().toString());
         metaNbt.putString("manager", name.toString());
-        CompoundTag rqNbt = rqBody.toNbt();
-        rqNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
-        PacketDistributor.sendToPlayer(target, payload.apply(rqNbt));
+        CompoundTag bodyNbt = rqBody.toNbt();
+        bodyNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
+        PacketDistributor.sendToPlayer(target, new ManagedRequestPayload(bodyNbt));
         requests.put(id, new RequestInfo(pair, handler, System.nanoTime(), isWaiting, List.of(target)));
         return true;
     }
 
-    public boolean requestToAll(ServerRequestPair pair, Function<CompoundTag, ? extends CustomPacketPayload> payload, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
+    public boolean requestToAll(ServerRequestPair pair, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
         if (!connecting) return false;
         if (ServerLifecycleHooks.getCurrentServer() == null) return false;
         int id = random.nextInt();
@@ -55,9 +55,9 @@ public class ServerRequestManager extends AbstractRequestManager<ServerRequestPa
         metaNbt.putString("type", pair.type().toString());
         metaNbt.putString("manager", name.toString());
         metaNbt.putString("requester", ManagedRequestPayload.requesterToString(ManagedRequestPayload.Requester.SERVER));
-        CompoundTag rqNbt = rqBody.toNbt();
-        rqNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
-        PacketDistributor.sendToAllPlayers(payload.apply(rqNbt));
+        CompoundTag bodyNbt = rqBody.toNbt();
+        bodyNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
+        PacketDistributor.sendToAllPlayers(new ManagedRequestPayload(bodyNbt));
         requests.put(id, new RequestInfo(pair, handler, System.nanoTime(), isWaiting,
                 new ArrayList<>(ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers())));
         return true;
@@ -96,9 +96,9 @@ public class ServerRequestManager extends AbstractRequestManager<ServerRequestPa
             return;
         }
         for(int i = 0; i < rqInfo.players().size(); i++)
-            if (rqInfo.players().get(i).getUUID() == context.player().getUUID()){
+            if (rqInfo.players().get(i).getUUID().equals(context.player().getUUID())){
                 rqInfo.players().remove(i);
-                break;
+                break; // 我只删一个，然后就跳出，应该不会错乱吧。
             }
         if (rqInfo.players().isEmpty()) requests.remove(id);
     }

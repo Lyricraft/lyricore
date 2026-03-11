@@ -37,7 +37,7 @@ public class ClientRequestManager extends AbstractRequestManager<ClientRequestPa
         metaNbt.putString("requester", ManagedRequestPayload.requesterToString(ManagedRequestPayload.Requester.CLIENT));
         CompoundTag bodyNbt = rqBody.toNbt();
         bodyNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
-        PacketDistributor.sendToServer(new ManagedRequestPayload(metaNbt));
+        PacketDistributor.sendToServer(new ManagedRequestPayload(bodyNbt));
         requests.put(id, new RequestInfo(pair, handler, System.nanoTime(), isWaiting, null));
         return true;
     }

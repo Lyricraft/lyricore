@@ -17,13 +17,13 @@ public class ClientRequestManagerRegistrar extends AbstractRequestManagerRegistr
 
     @Override
     public ClientRequestManager register(ClientRequestManager manager) {
-        rqManagers.addLast(manager);
+        rqManagers.add(manager);
         return manager;
     }
 
     @Override
     public ClientResponseManager register(ClientResponseManager manager) {
-        rpManagers.addLast(manager);
+        rpManagers.add(manager);
         return manager;
     }
 

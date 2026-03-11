@@ -86,7 +86,7 @@ public abstract class AbstractRequestManager<P extends AbstractRequestPair> impl
                     disconnectForTimeout(info);
                 else if (info.isWaiting())
                     info.handler().handleResponse(info.pair().emptyResponseBody(), null, new ResponseStatus(ResponseStatus.Status.TIMEOUT), info);
-                toRemove.addLast(id);
+                toRemove.add(id);
             }
         });
         toRemove.forEach(id -> {
