@@ -7,20 +7,44 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
-public record ManagedRequestPayload(CompoundTag rqNbt) implements CustomPacketPayload {
-    public static final Type<ManagedRequestPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(Lyricore.MOD_NAMESPACE,
-                    "managed_request_payload"));
+public record ManagedRequestPayload(CompoundTag bodyNbt) implements CustomPacketPayload {
 
     public static final StreamCodec<ByteBuf, ManagedRequestPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.COMPOUND_TAG,
-            ManagedRequestPayload::rqNbt,
+            ManagedRequestPayload::bodyNbt,
             ManagedRequestPayload::new
     );
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        String path = bodyNbt().getCompound(AbstractRequestManager.META_NBT_KEY).getString("manager");
+        if (path.isEmpty()) path = AbstractRequestManager.DEFAULT_NAME.toString();
+        path = path.replaceFirst(":", ".");
+        return new Type<ManagedRequestPayload>(ResourceLocation.fromNamespaceAndPath(Lyricore.MOD_NAMESPACE,"request_manager."+
+                bodyNbt().getCompound(AbstractRequestManager.META_NBT_KEY).getString("requester") + "." + path));
+    }
+
+    public static ResourceLocation nameToType(ResourceLocation name, Requester requester){
+        return ResourceLocation.fromNamespaceAndPath(Lyricore.MOD_NAMESPACE, "request_manager." +
+                ManagedRequestPayload.requesterToString(requester) + name.getNamespace()+ "." + name.getPath());
+    }
+
+    public enum Requester{
+        SERVER,
+        CLIENT
+    }
+
+    public static String requesterToString(Requester requester){
+        switch (requester){
+            case CLIENT -> {
+                return "client";
+            }
+            case SERVER -> {
+                return "server";
+            }
+        }
+        return "";
     }
 }

@@ -2,51 +2,53 @@ package cn.lyricraft.lyricore.network.requestManager;
 
 import cn.lyricraft.lyricore.Lyricore;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
-public abstract class AbstractRequestManager implements AutoCloseable, IPayloadHandler<ManagedResponsePayload> {
+public abstract class AbstractRequestManager implements AutoCloseable, IPayloadHandler<ManagedRequestPayload> {
     public static int DEFAULT_TIMEOUT = 30 * 1000; // 单位：毫秒
     public static int DEFAULT_HANDLE_EXPIRED_INTERVAL = 10 * 1000; // 单位：毫秒
+    public static String META_NBT_KEY = Lyricore.MOD_NAMESPACE + ":requestManager";
+    public static ResourceLocation DEFAULT_NAME = ResourceLocation.fromNamespaceAndPath(Lyricore.MOD_NAMESPACE, "default");
 
     protected boolean idStrict = false; // 在 idStrict 模式下，异端若发送了无法识别的相应，则直接断开连接
-    protected boolean timeStrict = false; // 在 timsStrict 模式下，异端若未在要求时间内相应，则直接断开连接
+    protected boolean timeStrict = false; // 在 timeStrict 模式下，异端若未在要求时间内相应，则直接断开连接
 
     public boolean connecting = false;
-    public String namespace;
-    protected Function<CompoundTag, ? extends CustomPacketPayload> payload;
-    private int timeout; // 请求过期时间，单位：毫秒
-    private int handleExpiredInterval;
+    public ResourceLocation name;
+    private int timeout; // 请求过期时间。单位：纳秒
+    private int handleExpiredInterval; // 清理超时事件间隔。单位：纳秒
     private ScheduledExecutorService handleExpiredTimer = null;
     protected final Random random = new Random();
 
 
     protected Map<Integer, RequestInfo> requests = new ConcurrentHashMap<>();
 
-    public AbstractRequestManager(String namespace, Function<CompoundTag, ? extends CustomPacketPayload> payload, int timeout, int handleExpiredInterval){
-        this.namespace = namespace;
-        this.payload = payload;
-        this.timeout = timeout;
-        this.handleExpiredInterval = handleExpiredInterval;
+    public AbstractRequestManager(ResourceLocation name, int timeout, int handleExpiredInterval){
+        this.name = name;
+        this.timeout = timeout * 1_000_000; // 转为纳秒
+        this.handleExpiredInterval = handleExpiredInterval * 1_000_000; // 转为纳秒
+    }
+
+    public ResourceLocation name(){
+        return name;
     }
 
     private void startTimer(){
         handleExpiredTimer = Executors.newSingleThreadScheduledExecutor();
         handleExpiredTimer.scheduleAtFixedRate(this::handleExpiredRequest, 0, handleExpiredInterval, TimeUnit.MILLISECONDS);
-    }
-
-    public AbstractRequestManager(){
-       this(Lyricore.MOD_NAMESPACE, ManagedRequestPayload::new, DEFAULT_TIMEOUT, DEFAULT_HANDLE_EXPIRED_INTERVAL);
     }
 
     @Override
@@ -76,7 +78,7 @@ public abstract class AbstractRequestManager implements AutoCloseable, IPayloadH
     }
 
     private void handleExpiredRequest(){
-        long time = System.nanoTime() / 1_000_000;
+        long time = System.nanoTime();
         List<Integer> toRemove = new ArrayList<>();
         requests.forEach((id,info) -> {
             if (time - info.requestTime() > timeout){
@@ -95,19 +97,15 @@ public abstract class AbstractRequestManager implements AutoCloseable, IPayloadH
     protected abstract void disconnectForTimeout(RequestInfo info);
 
     @Override
-    public void handle(ManagedResponsePayload payload, IPayloadContext context){
-        handleResponse(payload.rpNbt(), context);
+    public void handle(ManagedRequestPayload payload, @NotNull IPayloadContext context){
+        handleResponse(payload.bodyNbt(), context);
     }
 
     public abstract void handleResponse(CompoundTag rpNbt, IPayloadContext context);
 
     protected abstract void cannotLocateId(IPayloadContext context);
 
-    protected String metaNbtKey(){
-        return ((Objects.equals(namespace, ""))? "requestManager" : (namespace + ":" + "requestManager"));
-    }
-
-    public record RequestInfo(ResourceLocation type, IResponseHandler handler, long requestTime, boolean isWaiting, List<ServerPlayer> players){}
+    public record RequestInfo(ResourceLocation type, IManagedResponseHandler handler, long requestTime, boolean isWaiting, List<ServerPlayer> players){}
 
     public record ResponseStatus(Status status){
         public enum Status{

@@ -2,7 +2,7 @@ package cn.lyricraft.lyricore.network.requestManager;
 
 import net.minecraft.nbt.CompoundTag;
 
-public abstract class RequestBody {
+public abstract class ManagedRequestBody {
     public abstract CompoundTag toNbt();
-    protected RequestBody(CompoundTag nbt){} // To be overridden
+    protected ManagedRequestBody(CompoundTag nbt){} // To be overridden
 }

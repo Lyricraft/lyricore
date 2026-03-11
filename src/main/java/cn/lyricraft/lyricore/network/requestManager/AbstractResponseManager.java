@@ -1,32 +1,27 @@
 package cn.lyricraft.lyricore.network.requestManager;
 
-import cn.lyricraft.lyricore.Lyricore;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 
 public abstract class AbstractResponseManager<V extends AbstractRequestPair> implements IPayloadHandler<ManagedRequestPayload> {
-    protected String namespace;
+    protected ResourceLocation name;
     protected Function<CompoundTag, ? extends CustomPacketPayload> payload;
     protected final Map<String, V> pairs = new HashMap<>();
 
-    public AbstractResponseManager(String namespace, Function<CompoundTag, ? extends CustomPacketPayload> payload){
-        this.namespace = namespace;
-        this.payload = payload;
+    public AbstractResponseManager(ResourceLocation name){
+        this.name = name;
     }
 
-    public AbstractResponseManager(){
-        this(Lyricore.MOD_NAMESPACE, ManagedResponsePayload::new);
-    }
-
-    protected String metaNbtKey(){
-        return ((Objects.equals(namespace, ""))? "requestManager" : (namespace + ":" + "requestManager"));
+    public ResourceLocation name(){
+        return name;
     }
 
     public V registerRequestPair(V pair){
@@ -37,18 +32,20 @@ public abstract class AbstractResponseManager<V extends AbstractRequestPair> imp
     protected abstract void handleRequest(CompoundTag metaNbt, IPayloadContext context);
 
     @Override
-    public void handle(ManagedRequestPayload payload, IPayloadContext context){
-        handleRequest(payload.rqNbt(), context);
+    public void handle(ManagedRequestPayload payload, @NotNull IPayloadContext context){
+        handleRequest(payload.bodyNbt(), context);
     }
 
     public abstract class Handle{
         protected volatile boolean handled = false;
         protected int id;
         protected V pair;
+        protected ManagedRequestPayload.Requester requester;
 
-        public Handle(int id, V pair){
+        public Handle(int id, V pair, ManagedRequestPayload.Requester requester){
             this.id = id;
             this.pair = pair;
+            this.requester = requester;
         }
 
         public void reject() {
@@ -69,7 +66,7 @@ public abstract class AbstractResponseManager<V extends AbstractRequestPair> imp
             send(bodyNbt);
         }
 
-        public void response(RequestBody body) {
+        public void response(ManagedRequestBody body) {
             if (handled) return;
             handled = true;
             CompoundTag bodyNbt = body.toNbt();
@@ -84,11 +81,13 @@ public abstract class AbstractResponseManager<V extends AbstractRequestPair> imp
         private CompoundTag newMetaNbt(){
             CompoundTag metaNbt = new CompoundTag();
             metaNbt.putInt("id", id);
+            metaNbt.putString("manager", name.toString());
+            metaNbt.putString("requester", ManagedRequestPayload.requesterToString(requester));
             return metaNbt;
         }
 
         private void putMetaNbtIntoBodyNbt(CompoundTag bodyNbt, CompoundTag metaNbt){
-            bodyNbt.put(metaNbtKey(), metaNbt);
+            bodyNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
         }
 
         protected abstract void send(CompoundTag nbt);

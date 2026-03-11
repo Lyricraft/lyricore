@@ -1,8 +1,12 @@
 package cn.lyricraft.lyricore.network.requestManager;
 
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.StreamCodec;
+import cn.lyricraft.lyricore.Lyricore;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -10,35 +14,45 @@ public class ServerRequestManagerRegistrar extends AbstractRequestManagerRegistr
 
     public ServerRequestManagerRegistrar(String version) {
         super(version);
+        NeoForge.EVENT_BUS.register(this);
     }
 
     @Override
-    public ServerRequestManager register(ServerRequestManager manager,
-                                         CustomPacketPayload.Type<ManagedResponsePayload> responseType,
-                                         StreamCodec<ByteBuf, ManagedResponsePayload> responseCodec) {
-        rqItems.addLast(new RqItem(responseType, responseCodec, manager));
+    public ServerRequestManager register(ServerRequestManager manager) {
         rqManagers.addLast(manager);
         return manager;
     }
 
     @Override
-    public ServerResponseManager register(ServerResponseManager manager,
-                                          CustomPacketPayload.Type<ManagedRequestPayload> requestType,
-                                          StreamCodec<ByteBuf, ManagedRequestPayload> requestCodec) {
-        rpItems.addLast(new RpItem(requestType, requestCodec, manager));
+    public ServerResponseManager register(ServerResponseManager manager) {
+        rpManagers.addLast(manager);
         return manager;
     }
 
     @Override
     public void register(RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar(version);
-        rqItems.forEach(item -> {
-            registrar.playToClient(item.type(), item.codec(), item.manager());
+        rqManagers.forEach(manager -> {
+             registrar.playToClient(new CustomPacketPayload.Type<>(ManagedRequestPayload.nameToType(manager.name(), ManagedRequestPayload.Requester.SERVER)),
+                     ManagedRequestPayload.STREAM_CODEC, manager);
         });
-        rqItems = null;
-        rpItems.forEach(item -> {
-            registrar.playToServer(item.type(), item.codec(), item.manager());
+        rpManagers.forEach(manager -> {
+             registrar.playToServer(new CustomPacketPayload.Type<>(ManagedRequestPayload.nameToType(manager.name(), ManagedRequestPayload.Requester.CLIENT)),
+                     ManagedRequestPayload.STREAM_CODEC, manager);
         });
-        rpItems = null;
+    }
+
+    // 服务端启动事件
+    @SubscribeEvent
+    public void onServerStarting(ServerStartingEvent event) {
+        Lyricore.LOGGER.info("[{}] 启用服务端 RequestManager。Enabling Server RequestManager.", version);
+        connect();
+    }
+
+    // 服务端关闭事件
+    @SubscribeEvent
+    public void onServerShutdown(ServerStoppingEvent event) {
+        Lyricore.LOGGER.info("[{}] 停止服务端 RequestManager。Disabling Server RequestManager.", version);
+        disconnect();
     }
 }
