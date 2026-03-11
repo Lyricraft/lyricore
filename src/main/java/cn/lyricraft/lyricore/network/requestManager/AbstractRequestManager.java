@@ -29,7 +29,7 @@ public abstract class AbstractRequestManager<P extends AbstractRequestPair> impl
     public boolean connecting = false;
     public ResourceLocation name;
     private int timeout; // 请求过期时间。单位：纳秒
-    private int handleExpiredInterval; // 清理超时事件间隔。单位：纳秒
+    private int handleExpiredInterval; // 清理超时事件间隔。单位：毫秒
     private ScheduledExecutorService handleExpiredTimer = null;
     protected final Random random = new Random();
 
@@ -39,7 +39,7 @@ public abstract class AbstractRequestManager<P extends AbstractRequestPair> impl
     public AbstractRequestManager(ResourceLocation name, int timeout, int handleExpiredInterval){
         this.name = name;
         this.timeout = timeout * 1_000_000; // 转为纳秒
-        this.handleExpiredInterval = handleExpiredInterval * 1_000_000; // 转为纳秒
+        this.handleExpiredInterval = handleExpiredInterval;
     }
 
     public ResourceLocation name(){
