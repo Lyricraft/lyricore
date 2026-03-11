@@ -32,9 +32,9 @@ public class ServerRequestManager extends AbstractRequestManager<ServerRequestPa
         return this;
     }
 
-    public boolean request(ServerRequestPair pair, ServerPlayer target, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
-        if (!connecting) return false;
-        int id = random.nextInt();
+    public int request(ServerRequestPair pair, ServerPlayer target, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
+        if (!connecting) return -1;
+        int id = random.nextInt(AbstractRequestManager.MAX_ID);
         CompoundTag metaNbt = new CompoundTag();
         metaNbt.putInt("id", id);
         metaNbt.putString("type", pair.type().toString());
@@ -43,13 +43,13 @@ public class ServerRequestManager extends AbstractRequestManager<ServerRequestPa
         bodyNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
         PacketDistributor.sendToPlayer(target, new ManagedRequestPayload(bodyNbt));
         requests.put(id, new RequestInfo(pair, handler, System.nanoTime(), isWaiting, List.of(target)));
-        return true;
+        return id;
     }
 
-    public boolean requestToAll(ServerRequestPair pair, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
-        if (!connecting) return false;
-        if (ServerLifecycleHooks.getCurrentServer() == null) return false;
-        int id = random.nextInt();
+    public int requestToAll(ServerRequestPair pair, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
+        if (!connecting) return -1;
+        if (ServerLifecycleHooks.getCurrentServer() == null) return -1;
+        int id = random.nextInt(AbstractRequestManager.MAX_ID);
         CompoundTag metaNbt = new CompoundTag();
         metaNbt.putInt("id", id);
         metaNbt.putString("type", pair.type().toString());
@@ -60,7 +60,7 @@ public class ServerRequestManager extends AbstractRequestManager<ServerRequestPa
         PacketDistributor.sendToAllPlayers(new ManagedRequestPayload(bodyNbt));
         requests.put(id, new RequestInfo(pair, handler, System.nanoTime(), isWaiting,
                 new ArrayList<>(ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers())));
-        return true;
+        return id;
     }
 
     @Override
@@ -84,12 +84,12 @@ public class ServerRequestManager extends AbstractRequestManager<ServerRequestPa
             return;
         };
         if (metaNBT.getBoolean("reject")){
-            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(rqInfo.pair().emptyResponseBody(), context, new ResponseStatus(ResponseStatus.Status.REJECTED), rqInfo);
+            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(rqInfo.pair().emptyResponseBody(), context, new ResponseStatus(ResponseStatus.Status.REJECTED, id), rqInfo);
         } else if (metaNBT.getBoolean("delay")){
-            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(rqInfo.pair().emptyResponseBody(), context, new ResponseStatus(ResponseStatus.Status.DELAYED), rqInfo);
+            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(rqInfo.pair().emptyResponseBody(), context, new ResponseStatus(ResponseStatus.Status.DELAYED, id), rqInfo);
         } else {
             bodyNbt.remove(AbstractRequestManager.META_NBT_KEY);
-            rqInfo.handler().handleResponse(rqInfo.pair().responseBodyFromNbt(bodyNbt), context, new ResponseStatus(ResponseStatus.Status.OK), rqInfo);
+            rqInfo.handler().handleResponse(rqInfo.pair().responseBodyFromNbt(bodyNbt), context, new ResponseStatus(ResponseStatus.Status.OK, id), rqInfo);
         }
         if (rqInfo.players() == null){
             requests.remove(id);

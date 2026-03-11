@@ -27,9 +27,9 @@ public class ClientRequestManager extends AbstractRequestManager<ClientRequestPa
         return this;
     }
 
-    public boolean request(ClientRequestPair pair, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
-        if (!connecting || Minecraft.getInstance().level == null) return false;
-        int id = random.nextInt();
+    public int request(ClientRequestPair pair, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
+        if (!connecting || Minecraft.getInstance().level == null) return -1;
+        int id = random.nextInt(AbstractRequestManager.MAX_ID);
         CompoundTag metaNbt = new CompoundTag();
         metaNbt.putInt("id", id);
         metaNbt.putString("type", pair.type().toString());
@@ -39,7 +39,7 @@ public class ClientRequestManager extends AbstractRequestManager<ClientRequestPa
         bodyNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
         PacketDistributor.sendToServer(new ManagedRequestPayload(bodyNbt));
         requests.put(id, new RequestInfo(pair, handler, System.nanoTime(), isWaiting, null));
-        return true;
+        return id;
     }
 
     @Override
@@ -62,12 +62,12 @@ public class ClientRequestManager extends AbstractRequestManager<ClientRequestPa
             return;
         };
         if (metaNBT.getBoolean("reject")){
-            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(rqInfo.pair().emptyResponseBody(), context, new ResponseStatus(ResponseStatus.Status.REJECTED), rqInfo);
+            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(rqInfo.pair().emptyResponseBody(), context, new ResponseStatus(ResponseStatus.Status.REJECTED, id), rqInfo);
         } else if (metaNBT.getBoolean("delay")){
-            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(rqInfo.pair().emptyResponseBody(), context, new ResponseStatus(ResponseStatus.Status.DELAYED), rqInfo);
+            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(rqInfo.pair().emptyResponseBody(), context, new ResponseStatus(ResponseStatus.Status.DELAYED, id), rqInfo);
         } else {
             bodyNbt.remove(AbstractRequestManager.META_NBT_KEY);
-            rqInfo.handler().handleResponse(rqInfo.pair().responseBodyFromNbt(bodyNbt), context, new ResponseStatus(ResponseStatus.Status.OK), rqInfo);
+            rqInfo.handler().handleResponse(rqInfo.pair().responseBodyFromNbt(bodyNbt), context, new ResponseStatus(ResponseStatus.Status.OK, id), rqInfo);
         }
         requests.remove(id);
     }

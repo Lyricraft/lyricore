@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractRequestManager<P extends AbstractRequestPair> implements AutoCloseable, IPayloadHandler<ManagedRequestPayload> {
     public static int DEFAULT_TIMEOUT = 30 * 1000; // 单位：毫秒
     public static int DEFAULT_HANDLE_EXPIRED_INTERVAL = 10 * 1000; // 单位：毫秒
+    public static int MAX_ID = 2147483647; // 最大ID
     public static String META_NBT_KEY = Lyricore.MOD_NAMESPACE + ":requestManager";
     public static ResourceLocation DEFAULT_NAME = ResourceLocation.fromNamespaceAndPath(Lyricore.MOD_NAMESPACE, "default");
 
@@ -72,7 +73,7 @@ public abstract class AbstractRequestManager<P extends AbstractRequestPair> impl
         handleExpiredTimer = null;
         requests.forEach((id,info) -> {
             if (info.isWaiting())
-                info.handler().handleResponse(info.pair().emptyResponseBody(), null, new ResponseStatus(ResponseStatus.Status.DISCONNECT), info);
+                info.handler().handleResponse(info.pair().emptyResponseBody(), null, new ResponseStatus(ResponseStatus.Status.DISCONNECT, id), info);
         });
         requests.clear();
     }
@@ -85,7 +86,7 @@ public abstract class AbstractRequestManager<P extends AbstractRequestPair> impl
                 if (timeStrict)
                     disconnectForTimeout(info);
                 else if (info.isWaiting())
-                    info.handler().handleResponse(info.pair().emptyResponseBody(), null, new ResponseStatus(ResponseStatus.Status.TIMEOUT), info);
+                    info.handler().handleResponse(info.pair().emptyResponseBody(), null, new ResponseStatus(ResponseStatus.Status.TIMEOUT, id), info);
                 toRemove.add(id);
             }
         });
@@ -107,7 +108,7 @@ public abstract class AbstractRequestManager<P extends AbstractRequestPair> impl
 
     public record RequestInfo(AbstractRequestPair pair, IManagedResponseHandler handler, long requestTime, boolean isWaiting, List<ServerPlayer> players){}
 
-    public record ResponseStatus(Status status){
+    public record ResponseStatus(Status status, int id){
         public enum Status{
             OK,
             UNKNOWN_ERROR,
