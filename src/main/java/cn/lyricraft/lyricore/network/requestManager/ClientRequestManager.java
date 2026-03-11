@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public class ClientRequestManager extends AbstractRequestManager {
+public class ClientRequestManager extends AbstractRequestManager<ClientRequestPair> {
 
     public ClientRequestManager(ResourceLocation name, int timeout, int handleExpiredInterval){
         super(name, timeout, handleExpiredInterval);
@@ -27,18 +27,18 @@ public class ClientRequestManager extends AbstractRequestManager {
         return this;
     }
 
-    public boolean request(ResourceLocation type, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
+    public boolean request(ClientRequestPair pair, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
         if (!connecting || Minecraft.getInstance().level == null) return false;
         int id = random.nextInt();
         CompoundTag metaNbt = new CompoundTag();
         metaNbt.putInt("id", id);
-        metaNbt.putString("type", type.toString());
+        metaNbt.putString("type", pair.type().toString());
         metaNbt.putString("manager", name.toString());
         metaNbt.putString("requester", ManagedRequestPayload.requesterToString(ManagedRequestPayload.Requester.CLIENT));
         CompoundTag bodyNbt = rqBody.toNbt();
         bodyNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
         PacketDistributor.sendToServer(new ManagedRequestPayload(metaNbt));
-        requests.put(id, new RequestInfo(type, handler, System.nanoTime(), isWaiting, null));
+        requests.put(id, new RequestInfo(pair, handler, System.nanoTime(), isWaiting, null));
         return true;
     }
 
@@ -47,27 +47,27 @@ public class ClientRequestManager extends AbstractRequestManager {
         ClientPacketListener connection = Minecraft.getInstance().getConnection();
         if (connection != null && !ServerTypeHelper.isInnerServer()){
             connection.disconnect(Component.translatable("lyricore.multiplayer.disconnect.server_request_timeout").
-                    append("\n" + name.toString() + " . " + info.type().toString()));
+                    append("\n" + name.toString() + " . " + info.pair().type().toString()));
         }
     }
 
     @Override
-    public void handleResponse(CompoundTag rpNbt, IPayloadContext context){
-        CompoundTag rmNBT = rpNbt.getCompound(AbstractRequestManager.META_NBT_KEY);
-        if (rmNBT.isEmpty()) return;
-        int id = rmNBT.getInt("id");
+    public void handleResponse(CompoundTag bodyNbt, IPayloadContext context){
+        CompoundTag metaNBT = bodyNbt.getCompound(AbstractRequestManager.META_NBT_KEY);
+        if (metaNBT.isEmpty()) return;
+        int id = metaNBT.getInt("id");
         RequestInfo rqInfo = requests.get(id);
         if (rqInfo == null) {
             cannotLocateId(context);
             return;
         };
-        if (rmNBT.getBoolean("reject")){
-            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(new CompoundTag(), context, new ResponseStatus(ResponseStatus.Status.REJECTED), rqInfo);
-        } else if (rmNBT.getBoolean("delay")){
-            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(new CompoundTag(), context, new ResponseStatus(ResponseStatus.Status.DELAYED), rqInfo);
+        if (metaNBT.getBoolean("reject")){
+            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(rqInfo.pair().emptyResponseBody(), context, new ResponseStatus(ResponseStatus.Status.REJECTED), rqInfo);
+        } else if (metaNBT.getBoolean("delay")){
+            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(rqInfo.pair().emptyResponseBody(), context, new ResponseStatus(ResponseStatus.Status.DELAYED), rqInfo);
         } else {
-            rpNbt.remove(AbstractRequestManager.META_NBT_KEY);
-            rqInfo.handler().handleResponse(rpNbt, context, new ResponseStatus(ResponseStatus.Status.OK), rqInfo);
+            bodyNbt.remove(AbstractRequestManager.META_NBT_KEY);
+            rqInfo.handler().handleResponse(rqInfo.pair().responseBodyFromNbt(bodyNbt), context, new ResponseStatus(ResponseStatus.Status.OK), rqInfo);
         }
         requests.remove(id);
     }

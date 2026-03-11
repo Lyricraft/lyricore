@@ -1,3 +1,3 @@
 package cn.lyricraft.lyricore.network.requestManager;
 
-public abstract class ClientRequestPair<T extends ManagedRequestBody> extends AbstractRequestPair<T, ServerResponseManager.Handle> {}
+public abstract class ClientRequestPair<Rq extends ManagedRequestBody, Rp extends ManagedRequestBody> extends AbstractRequestPair<Rq, Rp, ServerResponseManager.Handle> {}

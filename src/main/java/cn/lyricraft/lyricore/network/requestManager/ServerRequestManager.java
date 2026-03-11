@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class ServerRequestManager extends AbstractRequestManager {
+public class ServerRequestManager extends AbstractRequestManager<ServerRequestPair> {
 
     public ServerRequestManager(ResourceLocation name, int timeout, int handleExpiredInterval){
         super(name, timeout, handleExpiredInterval);
@@ -32,33 +32,33 @@ public class ServerRequestManager extends AbstractRequestManager {
         return this;
     }
 
-    public boolean request(ServerPlayer target, ResourceLocation type, Function<CompoundTag, ? extends CustomPacketPayload> payload, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
+    public boolean request(ServerRequestPair pair, ServerPlayer target, Function<CompoundTag, ? extends CustomPacketPayload> payload, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
         if (!connecting) return false;
         int id = random.nextInt();
         CompoundTag metaNbt = new CompoundTag();
         metaNbt.putInt("id", id);
-        metaNbt.putString("type", type.toString());
+        metaNbt.putString("type", pair.type().toString());
         metaNbt.putString("manager", name.toString());
         CompoundTag rqNbt = rqBody.toNbt();
         rqNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
         PacketDistributor.sendToPlayer(target, payload.apply(rqNbt));
-        requests.put(id, new RequestInfo(type, handler, System.nanoTime(), isWaiting, List.of(target)));
+        requests.put(id, new RequestInfo(pair, handler, System.nanoTime(), isWaiting, List.of(target)));
         return true;
     }
 
-    public boolean requestToAll(ResourceLocation type, Function<CompoundTag, ? extends CustomPacketPayload> payload, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
+    public boolean requestToAll(ServerRequestPair pair, Function<CompoundTag, ? extends CustomPacketPayload> payload, ManagedRequestBody rqBody, IManagedResponseHandler handler, boolean isWaiting){
         if (!connecting) return false;
         if (ServerLifecycleHooks.getCurrentServer() == null) return false;
         int id = random.nextInt();
         CompoundTag metaNbt = new CompoundTag();
         metaNbt.putInt("id", id);
-        metaNbt.putString("type", type.toString());
+        metaNbt.putString("type", pair.type().toString());
         metaNbt.putString("manager", name.toString());
         metaNbt.putString("requester", ManagedRequestPayload.requesterToString(ManagedRequestPayload.Requester.SERVER));
         CompoundTag rqNbt = rqBody.toNbt();
         rqNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
         PacketDistributor.sendToAllPlayers(payload.apply(rqNbt));
-        requests.put(id, new RequestInfo(type, handler, System.nanoTime(), isWaiting,
+        requests.put(id, new RequestInfo(pair, handler, System.nanoTime(), isWaiting,
                 new ArrayList<>(ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers())));
         return true;
     }
@@ -69,27 +69,27 @@ public class ServerRequestManager extends AbstractRequestManager {
         info.players().forEach(player -> {
             if (player == null || player.hasDisconnected() || ServerTypeHelper.isLocalPlayer(player)) return;
             player.connection.disconnect(Component.translatable("lyricore.multiplayer.disconnect.request_timeout").
-                    append("\n" + name.toString() + " . " + info.type().toString()));
+                    append("\n" + name.toString() + " . " + info.pair().toString()));
         });
     }
 
     @Override
-    public void handleResponse(CompoundTag rpNbt, IPayloadContext context){
-        CompoundTag rmNBT = rpNbt.getCompound(AbstractRequestManager.META_NBT_KEY);
-        if (rmNBT.isEmpty()) return;
-        int id = rmNBT.getInt("id");
+    public void handleResponse(CompoundTag bodyNbt, IPayloadContext context){
+        CompoundTag metaNBT = bodyNbt.getCompound(AbstractRequestManager.META_NBT_KEY);
+        if (metaNBT.isEmpty()) return;
+        int id = metaNBT.getInt("id");
         RequestInfo rqInfo = requests.get(id);
         if (rqInfo == null) {
             cannotLocateId(context);
             return;
         };
-        if (rmNBT.getBoolean("reject")){
-            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(new CompoundTag(), context, new ResponseStatus(ResponseStatus.Status.REJECTED), rqInfo);
-        } else if (rmNBT.getBoolean("delay")){
-            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(new CompoundTag(), context, new ResponseStatus(ResponseStatus.Status.DELAYED), rqInfo);
+        if (metaNBT.getBoolean("reject")){
+            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(rqInfo.pair().emptyResponseBody(), context, new ResponseStatus(ResponseStatus.Status.REJECTED), rqInfo);
+        } else if (metaNBT.getBoolean("delay")){
+            if(rqInfo.isWaiting()) rqInfo.handler().handleResponse(rqInfo.pair().emptyResponseBody(), context, new ResponseStatus(ResponseStatus.Status.DELAYED), rqInfo);
         } else {
-            rpNbt.remove(AbstractRequestManager.META_NBT_KEY);
-            rqInfo.handler().handleResponse(rpNbt, context, new ResponseStatus(ResponseStatus.Status.OK), rqInfo);
+            bodyNbt.remove(AbstractRequestManager.META_NBT_KEY);
+            rqInfo.handler().handleResponse(rqInfo.pair().responseBodyFromNbt(bodyNbt), context, new ResponseStatus(ResponseStatus.Status.OK), rqInfo);
         }
         if (rqInfo.players() == null){
             requests.remove(id);

@@ -167,8 +167,9 @@ publishing {
         }
     }
     repositories {
+        // 发布到本地 maven仓库
         maven {
-            url "file://${project.projectDir}/repo"
+            url uri(System.getProperty('user.home') + '/.m2/repository')
         }
     }
 }

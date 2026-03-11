@@ -21,22 +21,22 @@ public class ClientResponseManager extends AbstractResponseManager<ServerRequest
     }
 
     @Override
-    protected void handleRequest(CompoundTag metaNbt, IPayloadContext context){
-        CompoundTag rmNbt = metaNbt.getCompound(AbstractRequestManager.META_NBT_KEY);
-        if (rmNbt.isEmpty()) return;
-        int id = rmNbt.getInt("id");
-        ServerRequestPair pair = pairs.get(rmNbt.getString("type"));
+    protected void handleRequest(CompoundTag bodyNbt, IPayloadContext context){
+        CompoundTag metaNbt = bodyNbt.getCompound(AbstractRequestManager.META_NBT_KEY);
+        if (metaNbt.isEmpty()) return;
+        int id = metaNbt.getInt("id");
+        ServerRequestPair pair = pairs.get(metaNbt.getString("type"));
         if (pair == null) {
             Lyricore.LOGGER.warn("服务端发送了无法识别的RequestManager请求。Server sent an unrecognized RequestManager request.\n"
-                    + "请求类型 / Request Type: " + name.toString() + " . " + rmNbt.getString("type"));
+                    + "请求类型 / Request Type: " + name.toString() + " . " + metaNbt.getString("type"));
             if (strict)
                 context.disconnect(Component.translatable("lyricore.multiplayer.disconnect.invalid_server_request")
-                        .append("\n" + name.toString() + ":" + "requestManager" + " . " + rmNbt.getString("type")));
+                        .append("\n" + name.toString() + ":" + "requestManager" + " . " + metaNbt.getString("type")));
             return;
         }
         Handle handleObj = new Handle(id, pair);
-        metaNbt.remove(AbstractRequestManager.META_NBT_KEY);
-        pair.handleRequest(pair.bodyFromNbt(metaNbt), context, handleObj);
+        bodyNbt.remove(AbstractRequestManager.META_NBT_KEY);
+        pair.handleRequest(pair.requestBodyFromNbt(bodyNbt), context, handleObj);
         if (!handleObj.isHandled()) handleObj.delay();
     }
 
