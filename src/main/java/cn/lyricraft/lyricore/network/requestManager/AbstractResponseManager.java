@@ -40,12 +40,10 @@ public abstract class AbstractResponseManager<V extends AbstractRequestPair> imp
         protected volatile boolean handled = false;
         protected int id;
         protected V pair;
-        protected ManagedRequestPayload.Requester requester;
 
-        public Handle(int id, V pair, ManagedRequestPayload.Requester requester){
+        public Handle(int id, V pair){
             this.id = id;
             this.pair = pair;
-            this.requester = requester;
         }
 
         public void reject() {
@@ -82,7 +80,7 @@ public abstract class AbstractResponseManager<V extends AbstractRequestPair> imp
             CompoundTag metaNbt = new CompoundTag();
             metaNbt.putInt("id", id);
             metaNbt.putString("manager", name.toString());
-            metaNbt.putString("requester", ManagedRequestPayload.requesterToString(requester));
+            metaNbt.putString("phase", ManagedRequestPayload.phaseToString(ManagedRequestPayload.Phase.RESPONSE));
             return metaNbt;
         }
 

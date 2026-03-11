@@ -43,7 +43,7 @@ public class ClientResponseManager extends AbstractResponseManager<ServerRequest
     public class Handle extends AbstractResponseManager.Handle{
 
         public Handle(int id, ServerRequestPair pair) {
-            super(id, pair, ManagedRequestPayload.Requester.SERVER);
+            super(id, pair);
         }
 
         @Override

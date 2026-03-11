@@ -23,26 +23,26 @@ public record ManagedRequestPayload(CompoundTag bodyNbt) implements CustomPacket
         if (path.isEmpty()) path = AbstractRequestManager.DEFAULT_NAME.toString();
         path = path.replaceFirst(":", ".");
         return new Type<ManagedRequestPayload>(ResourceLocation.fromNamespaceAndPath(Lyricore.MOD_NAMESPACE,"request_manager."+
-                bodyNbt().getCompound(AbstractRequestManager.META_NBT_KEY).getString("requester") + "." + path));
+                bodyNbt().getCompound(AbstractRequestManager.META_NBT_KEY).getString("phase") + "." + path));
     }
 
-    public static ResourceLocation nameToType(ResourceLocation name, Requester requester){
+    public static ResourceLocation nameToType(ResourceLocation name, Phase phase){
         return ResourceLocation.fromNamespaceAndPath(Lyricore.MOD_NAMESPACE, "request_manager." +
-                ManagedRequestPayload.requesterToString(requester) + name.getNamespace()+ "." + name.getPath());
+                ManagedRequestPayload.phaseToString(phase) + "." + name.getNamespace()+ "." + name.getPath());
     }
 
-    public enum Requester{
-        SERVER,
-        CLIENT
+    public enum Phase{
+        REQUEST,
+        RESPONSE
     }
 
-    public static String requesterToString(Requester requester){
-        switch (requester){
-            case CLIENT -> {
-                return "client";
+    public static String phaseToString(Phase phase){
+        switch (phase){
+            case REQUEST -> {
+                return "request";
             }
-            case SERVER -> {
-                return "server";
+            case RESPONSE -> {
+                return "response";
             }
         }
         return "";

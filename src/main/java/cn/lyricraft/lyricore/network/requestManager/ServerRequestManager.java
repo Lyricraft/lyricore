@@ -39,6 +39,7 @@ public class ServerRequestManager extends AbstractRequestManager<ServerRequestPa
         metaNbt.putInt("id", id);
         metaNbt.putString("type", pair.type().toString());
         metaNbt.putString("manager", name.toString());
+        metaNbt.putString("phase", ManagedRequestPayload.phaseToString(ManagedRequestPayload.Phase.REQUEST));
         CompoundTag bodyNbt = rqBody.toNbt();
         bodyNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
         PacketDistributor.sendToPlayer(target, new ManagedRequestPayload(bodyNbt));
@@ -54,7 +55,7 @@ public class ServerRequestManager extends AbstractRequestManager<ServerRequestPa
         metaNbt.putInt("id", id);
         metaNbt.putString("type", pair.type().toString());
         metaNbt.putString("manager", name.toString());
-        metaNbt.putString("requester", ManagedRequestPayload.requesterToString(ManagedRequestPayload.Requester.SERVER));
+        metaNbt.putString("phase", ManagedRequestPayload.phaseToString(ManagedRequestPayload.Phase.REQUEST));
         CompoundTag bodyNbt = rqBody.toNbt();
         bodyNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
         PacketDistributor.sendToAllPlayers(new ManagedRequestPayload(bodyNbt));
