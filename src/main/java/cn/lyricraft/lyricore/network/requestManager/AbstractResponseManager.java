@@ -13,7 +13,6 @@ import java.util.function.Function;
 
 public abstract class AbstractResponseManager<V extends AbstractRequestPair> implements IPayloadHandler<ManagedRequestPayload> {
     protected ResourceLocation name;
-    protected Function<CompoundTag, ? extends CustomPacketPayload> payload;
     protected final Map<String, V> pairs = new HashMap<>();
 
     public AbstractResponseManager(ResourceLocation name){

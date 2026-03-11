@@ -48,7 +48,7 @@ public class ClientResponseManager extends AbstractResponseManager<ServerRequest
 
         @Override
         protected void send(CompoundTag nbt) {
-            PacketDistributor.sendToServer(payload.apply(nbt));
+            PacketDistributor.sendToServer(new ManagedRequestPayload(nbt));
         }
     }
 
