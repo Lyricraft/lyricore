@@ -22,18 +22,25 @@ public record ManagedRequestPayload(CompoundTag bodyNbt) implements CustomPacket
         String path = bodyNbt().getCompound(AbstractRequestManager.META_NBT_KEY).getString("manager");
         if (path.isEmpty()) path = AbstractRequestManager.DEFAULT_NAME.toString();
         path = path.replaceFirst(":", ".");
-        return new Type<ManagedRequestPayload>(ResourceLocation.fromNamespaceAndPath(Lyricore.MOD_NAMESPACE,"request_manager."+
-                bodyNbt().getCompound(AbstractRequestManager.META_NBT_KEY).getString("phase") + "." + path));
+        return new Type<ManagedRequestPayload>(ResourceLocation.fromNamespaceAndPath(Lyricore.MOD_NAMESPACE,"request_manager."
+                + bodyNbt().getCompound(AbstractRequestManager.META_NBT_KEY).getString("requester") + "."
+                + bodyNbt().getCompound(AbstractRequestManager.META_NBT_KEY).getString("phase") + "." + path));
     }
 
-    public static ResourceLocation nameToType(ResourceLocation name, Phase phase){
-        return ResourceLocation.fromNamespaceAndPath(Lyricore.MOD_NAMESPACE, "request_manager." +
-                ManagedRequestPayload.phaseToString(phase) + "." + name.getNamespace()+ "." + name.getPath());
+    public static ResourceLocation nameToType(ResourceLocation name, Phase phase, Requester requester){
+        return ResourceLocation.fromNamespaceAndPath(Lyricore.MOD_NAMESPACE, "request_manager."
+                + ManagedRequestPayload.requesterToString(requester) + "."
+                + ManagedRequestPayload.phaseToString(phase) + "." + name.getNamespace()+ "." + name.getPath());
     }
 
     public enum Phase{
         REQUEST,
         RESPONSE
+    }
+
+    public enum Requester{
+        CLIENT,
+        SERVER
     }
 
     public static String phaseToString(Phase phase){
@@ -43,6 +50,18 @@ public record ManagedRequestPayload(CompoundTag bodyNbt) implements CustomPacket
             }
             case RESPONSE -> {
                 return "response";
+            }
+        }
+        return "";
+    }
+
+    public static String requesterToString(Requester requester){
+        switch (requester){
+            case CLIENT -> {
+                return "client";
+            }
+            case SERVER -> {
+                return "server";
             }
         }
         return "";

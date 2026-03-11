@@ -46,7 +46,7 @@ public class ServerResponseManager extends AbstractResponseManager<ClientRequest
         private IPayloadContext context;
 
         public Handle(int id, ClientRequestPair pair, IPayloadContext context) {
-            super(id, pair);
+            super(id, pair, ManagedRequestPayload.Requester.CLIENT);
             this.context = context;
         }
 

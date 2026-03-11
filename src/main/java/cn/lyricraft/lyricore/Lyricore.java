@@ -1,6 +1,8 @@
 package cn.lyricraft.lyricore;
 
 import cn.lyricraft.lyricore.network.requestManager.*;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.slf4j.Logger;
@@ -17,6 +19,7 @@ import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(Lyricore.MOD_ID)
+@EventBusSubscriber(modid = Lyricore.MOD_ID)
 public class Lyricore {
     // Define mod id in a common place for everything to reference
     public static final String MOD_ID = "lyricore";
@@ -51,12 +54,10 @@ public class Lyricore {
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
-    // 本类未注册到全局事件，暂时无法使用。
     @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
+    public static void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
         // LOGGER.info("HELLO from server starting");
-
     }
 
     // 真注册通用 RequestManager

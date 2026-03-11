@@ -33,11 +33,13 @@ public class ServerRequestManagerRegistrar extends AbstractRequestManagerRegistr
     public void register(RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar(version);
         rqManagers.forEach(manager -> {
-             registrar.playToClient(new CustomPacketPayload.Type<>(ManagedRequestPayload.nameToType(manager.name(), ManagedRequestPayload.Phase.REQUEST)),
+             registrar.playToServer(new CustomPacketPayload.Type<>(ManagedRequestPayload.nameToType(manager.name(),
+                             ManagedRequestPayload.Phase.RESPONSE, ManagedRequestPayload.Requester.SERVER)),
                      ManagedRequestPayload.STREAM_CODEC, manager);
         });
         rpManagers.forEach(manager -> {
-             registrar.playToServer(new CustomPacketPayload.Type<>(ManagedRequestPayload.nameToType(manager.name(), ManagedRequestPayload.Phase.RESPONSE)),
+             registrar.playToServer(new CustomPacketPayload.Type<>(ManagedRequestPayload.nameToType(manager.name(),
+                             ManagedRequestPayload.Phase.REQUEST, ManagedRequestPayload.Requester.CLIENT)),
                      ManagedRequestPayload.STREAM_CODEC, manager);
         });
     }
