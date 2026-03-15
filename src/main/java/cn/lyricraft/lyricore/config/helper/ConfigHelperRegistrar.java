@@ -17,7 +17,7 @@ public class ConfigHelperRegistrar {
         if (typeName.isEmpty())
             throw new IllegalArgumentException("Cannot register config: invalid config type.");
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(namespace, typeName);
-        if (ConfigHelper.getConfigSpec(id) != null)
+        if (ConfigHelper.getConfigSpec(id, true) != null)
             throw new IllegalArgumentException("Cannot register config: a config with the same id already exists.");
         ConfigHelper.registerConfig(id, config);
     }

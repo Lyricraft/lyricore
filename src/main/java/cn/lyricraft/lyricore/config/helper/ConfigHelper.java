@@ -68,13 +68,18 @@ public class ConfigHelper {
         configSpecs.put(id, config);
     }
 
-    public static ModConfigSpec getConfigSpec(ResourceLocation id){
+    protected static ModConfigSpec getConfigSpec(ResourceLocation id, boolean isTry){
         ModConfigSpec config = configSpecs.get(id);
         if (config == null){
-            Lyricore.LOGGER.warn("[ConfigHelper] 该配置未被注册 / No config registered named: " + id);
+            if (!isTry)
+                Lyricore.LOGGER.warn("[ConfigHelper] 该配置未被注册 / No config registered named: " + id);
             return null;
         }
         return config;
+    }
+
+    public static ModConfigSpec getConfigSpec(ResourceLocation id){
+        return getConfigSpec(id, false);
     }
 
     public static ModConfigSpec.ConfigValue getConfigValueFromPath(String location) {
