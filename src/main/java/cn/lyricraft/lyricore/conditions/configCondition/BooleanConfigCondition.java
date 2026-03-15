@@ -16,8 +16,7 @@ public record BooleanConfigCondition(String path, ModConfigSpec.BooleanValue con
                 if (type == null) return DataResult.error(() ->
                         "Invalid path parameter for lyricore:boolean_config condition: " + location);
                 if (type == ModConfig.Type.SERVER) return DataResult.error(() ->
-                        "Server configs are not supported for lyricore:boolean_config condition: " + location + "\n"
-                                + "(Due to NeoForge's 傻逼 load order.)");
+                        "Server configs are not supported for lyricore:boolean_config condition: " + location);
                 ModConfigSpec.ConfigValue value = ConfigHelper.getConfigValueFromPath(location);
                 if (value == null) return DataResult.error(() ->
                         "Config value not found for path parameter in lyricore:boolean_config condition: "
