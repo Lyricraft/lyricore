@@ -1,7 +1,6 @@
 package cn.lyricraft.lyricore.config.helper;
 
 import cn.lyricraft.lyricore.Lyricore;
-import com.electronwill.nightconfig.core.ConfigSpec;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -70,23 +69,28 @@ public class ConfigHelper {
         return config;
     }
 
-    public static ModConfigSpec.ConfigValue getConfigValueFromLocation(ResourceLocation location) {
-        String path = location.getPath();
-        List<String> segments = List.of(path.split("\\."));
-        if (segments.size() < 2) {
-            Lyricore.LOGGER.warn("[ConfigHelper] 无效的配置路径 / Invalid config path: " + path);
+    public static ModConfigSpec.ConfigValue getConfigValueFromPath(String location) {
+        String[] locationSegments = location.split(":");
+        if (locationSegments.length != 2
+                || locationSegments[0].isEmpty() || locationSegments[1].isEmpty()){
+            Lyricore.LOGGER.warn("[ConfigHelper] 无效的配置路径 / Invalid config path: " + location);
+            return null;
+        }
+        List<String> pathSegments = new ArrayList<>(List.of(locationSegments[1].split("\\.")));
+        if (pathSegments.size() < 2) {
+            Lyricore.LOGGER.warn("[ConfigHelper] 无效的配置路径 / Invalid config path: " + location);
             return null;
         }
         ModConfigSpec configSpec = getConfigSpec(
-                ResourceLocation.fromNamespaceAndPath(location.getNamespace(), segments.getFirst())
+                ResourceLocation.fromNamespaceAndPath(locationSegments[0], pathSegments.getFirst())
         );
         if (configSpec == null) {
             return null;
         }
-        segments.removeFirst(); // 现在是配置值的路径了
-        ModConfigSpec.ConfigValue value = configSpec.getValues().get(segments);
+        pathSegments.removeFirst(); // 现在是配置值的路径了
+        ModConfigSpec.ConfigValue value = configSpec.getValues().get(pathSegments);
         if (value == null) {
-            Lyricore.LOGGER.warn("[ConfigHelper] 无法找到配置值 / Config value not found for path: " + path);
+            Lyricore.LOGGER.warn("[ConfigHelper] 无法找到配置值 / Config value not found for path: " + location);
             return null;
         }
         return value;
