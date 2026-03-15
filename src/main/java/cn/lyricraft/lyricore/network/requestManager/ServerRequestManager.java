@@ -44,7 +44,7 @@ public class ServerRequestManager extends AbstractRequestManager<ServerRequestPa
         CompoundTag bodyNbt = rqBody.toNbt();
         bodyNbt.put(AbstractRequestManager.META_NBT_KEY, metaNbt);
         PacketDistributor.sendToPlayer(target, new ManagedRequestPayload(bodyNbt));
-        requests.put(id, new RequestInfo(pair, handler, System.nanoTime(), isWaiting, List.of(target)));
+        requests.put(id, new RequestInfo(pair, handler, System.nanoTime(), isWaiting, new ArrayList<>(List.of(target))));
         return id;
     }
 

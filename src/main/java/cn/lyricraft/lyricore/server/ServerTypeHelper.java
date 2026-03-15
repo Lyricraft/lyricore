@@ -13,6 +13,6 @@ public class ServerTypeHelper {
         if (!isInnerServer()) return false;
         Player local = Minecraft.getInstance().player;
         if (local == null) return false;
-        return (player.getUUID() == local.getUUID());
+        return (player.getUUID().equals(local.getUUID()));
     }
 }
