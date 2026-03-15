@@ -56,6 +56,14 @@ public class ConfigHelper {
         return new ConfigHelperRegistrar(namespace);
     }
 
+    public static ModConfig.Type typeOfPath(String path) {
+        String[] locationSegments = path.split(":");
+        if (locationSegments.length != 2) return null;
+        String[] pathSegments = locationSegments[1].split("\\.");
+        if (pathSegments.length < 1) return null;
+        return typeStringToEnum(pathSegments[0]);
+    }
+
     protected static void registerConfig(ResourceLocation id, ModConfigSpec config){
         configSpecs.put(id, config);
     }
