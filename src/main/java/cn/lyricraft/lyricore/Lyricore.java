@@ -25,7 +25,7 @@ public class Lyricore {
     // Define mod id in a common place for everything to reference
     public static final String MOD_ID = "lyricore";
     public static final String MOD_NAMESPACE = MOD_ID;
-    public static final String MOD_VERSION = "0.9.0";
+    public static final String MOD_VERSION = "0.1.0";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
 
