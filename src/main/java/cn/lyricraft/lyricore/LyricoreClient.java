@@ -16,17 +16,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 @EventBusSubscriber(modid = Lyricore.MOD_ID, value = Dist.CLIENT)
 public class LyricoreClient {
 
-    // 注册通用 RequestManager
-    public static final ClientRequestManagerRegistrar CLIENT_REQUEST_MANAGERS = new ClientRequestManagerRegistrar(
-            Lyricore.MOD_ID + " " + Lyricore.MOD_VERSION
-    );
-    public static final ClientRequestManager CLIENT_REQUEST_MANAGER = CLIENT_REQUEST_MANAGERS.register(
-            new ClientRequestManager(AbstractRequestManager.DEFAULT_NAME,
-                    AbstractRequestManager.DEFAULT_TIMEOUT,
-                    AbstractRequestManager.DEFAULT_HANDLE_EXPIRED_INTERVAL)
-                    .idStrict());
-    public static final ClientResponseManager CLIENT_RESPONSE_MANAGER = CLIENT_REQUEST_MANAGERS.register(
-            new ClientResponseManager(AbstractRequestManager.DEFAULT_NAME).strict());
+
 
     public LyricoreClient(ModContainer container) {
 
@@ -42,6 +32,6 @@ public class LyricoreClient {
     // 真注册通用 RequestManager
     @SubscribeEvent
     public static void register(RegisterPayloadHandlersEvent event) {
-        CLIENT_REQUEST_MANAGERS.register(event);
+
     }
 }

@@ -2,7 +2,7 @@ package cn.lyricraft.lyricore.network.requestManager;
 
 import cn.lyricraft.lyricore.Lyricore;
 import cn.lyricraft.lyricore.log.LogHelper;
-import cn.lyricraft.lyricore.server.ServerTypeHelper;
+import cn.lyricraft.lyricore.server.typeHelper.ServerTypeHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.nbt.CompoundTag;

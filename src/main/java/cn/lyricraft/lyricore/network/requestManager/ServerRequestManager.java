@@ -2,10 +2,9 @@ package cn.lyricraft.lyricore.network.requestManager;
 
 import cn.lyricraft.lyricore.Lyricore;
 import cn.lyricraft.lyricore.log.LogHelper;
-import cn.lyricraft.lyricore.server.ServerTypeHelper;
+import cn.lyricraft.lyricore.server.typeHelper.ServerTypeHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -14,7 +13,6 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 public class ServerRequestManager extends AbstractRequestManager<ServerRequestPair> {
 

@@ -29,7 +29,7 @@ public class Lyricore {
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    // 注册通用 RequestManager
+    // 注册服务端通用 RequestManager
     public static final ServerRequestManagerRegistrar SERVER_REQUEST_MANAGERS = new ServerRequestManagerRegistrar(
             MOD_ID + " " + MOD_VERSION);
     public static final ServerRequestManager SERVER_REQUEST_MANAGER = SERVER_REQUEST_MANAGERS.register(
@@ -39,6 +39,17 @@ public class Lyricore {
                     .idStrict());
     public static final ServerResponseManager SERVER_RESPONSE_MANAGER = SERVER_REQUEST_MANAGERS.register(
             new ServerResponseManager(AbstractRequestManager.DEFAULT_NAME).strict());
+    // 注册通用 RequestManager
+    public static final ClientRequestManagerRegistrar CLIENT_REQUEST_MANAGERS = new ClientRequestManagerRegistrar(
+            Lyricore.MOD_ID + " " + Lyricore.MOD_VERSION
+    );
+    public static final ClientRequestManager CLIENT_REQUEST_MANAGER = CLIENT_REQUEST_MANAGERS.register(
+            new ClientRequestManager(AbstractRequestManager.DEFAULT_NAME,
+                    AbstractRequestManager.DEFAULT_TIMEOUT,
+                    AbstractRequestManager.DEFAULT_HANDLE_EXPIRED_INTERVAL)
+                    .idStrict());
+    public static final ClientResponseManager CLIENT_RESPONSE_MANAGER = CLIENT_REQUEST_MANAGERS.register(
+            new ClientResponseManager(AbstractRequestManager.DEFAULT_NAME).strict());
 
     // The constructor for the mod class is the first code that is run when your mod is loaded.
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
@@ -66,7 +77,10 @@ public class Lyricore {
     // 真注册通用 RequestManager
     @SubscribeEvent
     public static void register(RegisterPayloadHandlersEvent event) {
+        // 服务端
         SERVER_REQUEST_MANAGERS.register(event);
+        // 客户端
+        CLIENT_REQUEST_MANAGERS.register(event);
     }
 
 }
