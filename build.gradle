@@ -164,6 +164,8 @@ publishing {
     publications {
         register('mavenJava', MavenPublication) {
             from components.java
+            groupId = project.group_id
+            version = project.mod_version
         }
     }
     repositories {
@@ -171,8 +173,19 @@ publishing {
         maven {
             url uri(System.getProperty('user.home') + '/.m2/repository')
         }
+        // github pachages
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/Lyricraft/lyricore"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 }
+
+
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation

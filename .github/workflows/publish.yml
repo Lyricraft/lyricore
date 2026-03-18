@@ -1,0 +1,47 @@
+name: AutoPublishToGitHubMaven
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      delete: packages  # 允许删除旧版本
+
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      # 自动读取当前模组版本号
+      - name: Get mod version
+        id: get_version
+        run: echo "VERSION=$(./gradlew properties -q | grep '^version:' | awk '{print \$2}')" >> $GITHUB_OUTPUT
+
+      # 自动删除已存在的同名版本
+      - name: Delete old maven version
+        uses: svenstaro/delete-package-versions@v5
+        with:
+          package-name: lyricore
+          package-type: maven
+          version: ${{ steps.get_version.outputs.VERSION }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 构建 + 发布到 GitHub Maven
+      - name: Build and Publish
+        run: ./gradlew build publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
