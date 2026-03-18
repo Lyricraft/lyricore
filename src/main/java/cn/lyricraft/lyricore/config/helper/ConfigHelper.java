@@ -131,14 +131,16 @@ public class ConfigHelper {
     }
 
     public static class I18n{
-        private ResourceLocation specsLocation;
-
-        private I18n(ResourceLocation specsLocation){
-            this.specsLocation = specsLocation;
-        }
 
         public static String title(String modId){
             return (modId + ".configuration.title");
+        }
+
+        private ResourceLocation specsLocation;
+        private String cache;
+
+        private I18n(ResourceLocation specsLocation){
+            this.specsLocation = specsLocation;
         }
 
         private String head(){
@@ -154,7 +156,8 @@ public class ConfigHelper {
         }
 
         public String section(String name){
-            return (head() + name);
+            cache = head() + name;
+            return (cache);
         }
 
         public String sectionTooltip(String name){
@@ -167,12 +170,21 @@ public class ConfigHelper {
 
         // Config Value
         public String cv(ModConfigSpec.ConfigValue value){
-            return (head() + value.getPath().getLast());
+            cache = head() + value.getPath().getLast();
+            return (cache);
         }
 
         public String cvTooltip(ModConfigSpec.ConfigValue value){
             return (cv(value) + ".tooltip");
         }
 
+        // 调用缓存
+        public String tooltip(){
+            return (cache + ".tooltip");
+        }
+
+        public String button(){
+            return (cache + ".button");
+        }
     }
 }
