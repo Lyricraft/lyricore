@@ -11,37 +11,32 @@ jobs:
     permissions:
       contents: read
       packages: write
-      delete: packages  # 允许删除旧版本
 
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - name: Set up JDK 17
+      - name: 置 JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
+          # 核心妙诀在此 ↓
+          server-id: github
+          server-username: ${{ github.actor }}
+          server-password: ${{ secrets.GITHUB_TOKEN }}
+          # 开覆写之门 ↑
 
-      - name: Make gradlew executable
+      - name: 授 gradlew 行权
         run: chmod +x ./gradlew
 
-      # 自动读取当前模组版本号
-      - name: Get mod version
-        id: get_version
-        run: echo "VERSION=$(./gradlew properties -q | grep '^version:' | awk '{print \$2}')" >> $GITHUB_OUTPUT
-
-      # 自动删除已存在的同名版本
-      - name: Delete old maven version
-        uses: svenstaro/delete-package-versions@v5
-        with:
-          package-name: lyricore
-          package-type: maven
-          version: ${{ steps.get_version.outputs.VERSION }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      # 构建 + 发布到 GitHub Maven
-      - name: Build and Publish
+      # 径行构建发布，新包自覆旧包
+      - name: 建置与布包
         run: ./gradlew build publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # （可选项）清除缓存
+      - name: 涤构建缓存
+        uses: actions/cache/clean@v2
+        if: always()
