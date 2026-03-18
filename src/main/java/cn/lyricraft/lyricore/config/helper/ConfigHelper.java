@@ -1,6 +1,8 @@
 package cn.lyricraft.lyricore.config.helper;
 
 import cn.lyricraft.lyricore.Lyricore;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -9,9 +11,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ConfigHelper {
-    private static final Map<ResourceLocation, ModConfigSpec> configSpecs = new HashMap<>();
+    private static final BiMap<ResourceLocation, ModConfigSpec> configSpecs = HashBiMap.create();
     public static ModConfig.Type typeStringToEnum(String string){
         switch (string){
             case "common" -> {
@@ -107,5 +110,69 @@ public class ConfigHelper {
             return null;
         }
         return value;
+    }
+
+    public static String getConfigPathFromValue(ModConfigSpec configSpec, ModConfigSpec.ConfigValue configValue) {
+        ResourceLocation location = configSpecs.inverse().get(configSpec);
+        if (location == null) {
+            Lyricore.LOGGER.warn("[ConfigHelper] 该配置未被注册 / No config registered likes: " + configSpec.toString());
+            return "";
+        }
+        return location.toString() + "." + String.join(".", configValue.getPath());
+    }
+
+    public static I18n i18n(ModConfigSpec configSpec){
+        ResourceLocation location = configSpecs.inverse().get(configSpec);
+        if (location == null) {
+            Lyricore.LOGGER.warn("[ConfigHelper] 该配置未被注册 / No config registered likes: " + configSpec.toString());
+            throw new IllegalArgumentException("No config registered likes: " + configSpec);
+        }
+        return new I18n(location);
+    }
+
+    public static class I18n{
+        private ResourceLocation specsLocation;
+
+        private I18n(ResourceLocation specsLocation){
+            this.specsLocation = specsLocation;
+        }
+
+        public static String title(String modId){
+            return (modId + ".configuration.title");
+        }
+
+        private String head(){
+            return (specsLocation.getNamespace()+".configuration.");
+        }
+
+        public String file(){
+            return (head() + "section." + specsLocation.getNamespace() + "." + specsLocation.getPath() + ".toml");
+        }
+
+        public String fileTitle(){
+            return (file() + ".title");
+        }
+
+        public String section(String name){
+            return (head() + name);
+        }
+
+        public String sectionTooltip(String name){
+            return (section(name) + ".tooltip");
+        }
+
+        public String sectionButton(String name){
+            return (section(name) + ".button");
+        }
+
+        // Config Value
+        public String cv(ModConfigSpec.ConfigValue value){
+            return (head() + value.getPath().getLast());
+        }
+
+        public String cvTooltip(ModConfigSpec.ConfigValue value){
+            return (cv(value) + ".tooltip");
+        }
+
     }
 }

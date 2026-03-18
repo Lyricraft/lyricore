@@ -37,4 +37,8 @@ public record BooleanConfigCondition(String path, ModConfigSpec.BooleanValue con
     public @NotNull MapCodec<? extends ICondition> codec() {
         return CODEC;
     }
+
+    public static BooleanConfigCondition of(ModConfigSpec spec, ModConfigSpec.BooleanValue config){
+        return new BooleanConfigCondition(ConfigHelper.getConfigPathFromValue(spec, config), config);
+    }
 }
