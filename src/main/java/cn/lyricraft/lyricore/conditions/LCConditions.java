@@ -10,7 +10,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import java.util.function.Supplier;
 
-public class AllConditions {
+public class LCConditions {
     public static final DeferredRegister<MapCodec<? extends ICondition>> CONDITION_CODECS =
             DeferredRegister.create(NeoForgeRegistries.Keys.CONDITION_CODECS, Lyricore.MOD_ID);
 
@@ -18,6 +18,6 @@ public class AllConditions {
         CONDITION_CODECS.register(eventBus);
     }
 
-    public static final Supplier<MapCodec<BooleanConfigCondition>> CONFIG_ENABLED =
+    public static final Supplier<MapCodec<BooleanConfigCondition>> BOOLEAN_CONFIG =
             CONDITION_CODECS.register("boolean_config", () -> BooleanConfigCondition.CODEC);
 }

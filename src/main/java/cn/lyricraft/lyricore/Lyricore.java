@@ -1,10 +1,8 @@
 package cn.lyricraft.lyricore;
 
-import cn.lyricraft.lyricore.conditions.AllConditions;
+import cn.lyricraft.lyricore.conditions.LCConditions;
 import cn.lyricraft.lyricore.network.requestManager.*;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.slf4j.Logger;
 
@@ -15,7 +13,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
@@ -55,7 +52,7 @@ public class Lyricore {
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
     public Lyricore(IEventBus modEventBus, ModContainer modContainer) {
         // 注册所有数据加载条件
-        AllConditions.register(modEventBus);
+        LCConditions.register(modEventBus);
         // 将 ServerRequestManagerRegistrar 注册到模组事件总线
         // modEventBus.register(SERVER_REQUEST_MANAGERS);
         // 将本类注册到全局事件总线
